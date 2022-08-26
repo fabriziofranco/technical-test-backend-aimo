@@ -349,3 +349,7 @@ min-width: 100px;
 .modal form label {
 font-weight: normal;
 }	
+
+.td{
+  text-overflow: clip;
+}

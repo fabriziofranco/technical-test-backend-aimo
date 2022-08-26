@@ -88,8 +88,8 @@ def add_note():
             return {"result": data.errors, "status": response.status_code}
         else:
             title = data.data['title']
-            Note.create(title = title, user = auth_user)
-            return {"result": "success", "status": response.status_code}        
+            note = Note.create(title = title, user = auth_user)
+            return {"result": "success", "status": response.status_code, "title": note.title, "creation_date": str(note.creation_date)}        
 
 
 @enable_cors

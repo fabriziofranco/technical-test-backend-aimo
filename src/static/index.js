@@ -21,6 +21,7 @@ function login(){
           $("#container-xl").css("display", "block");
           $("#login-page").css("display", "none");
           localStorage['token'] = response['result']['token'];
+          load_notes();
         },
         error: function(response){
           let result_errors = response['responseJSON']['result'];
@@ -66,27 +67,75 @@ function signup(){
     );
 }
 
+function load_notes(){
+  $.ajax({
+    url:'http://localhost:8000/notes',
+    type:'GET',
+    dataType: "json",
+    contentType: 'application/json',
+    beforeSend: function(request) {
+      request.setRequestHeader("Authorization", localStorage['token']);
+    },
+    success: function(response){
+      let notes = response['notes'];
+      for (let note in notes){
+        let note_content = notes[note];
+        let codeBlock = '<tr>' + 
+                '<td>' + note_content['title'] + '</td>' +
+                '<td>' + note_content['creation_date'] + '</td>' +
+      '         </tr>';
+            document.getElementById("list-notes").innerHTML += codeBlock;
+      }
+    },
+    error: function(){
+      alert("Wrong token detected");
+    }
+  }      
+);  
+}
 
-$(document).ready(function(){
-	// Activate tooltip
-	$('[data-toggle="tooltip"]').tooltip();
-	
-	// Select/Deselect checkboxes
-	let checkbox = $('table tbody input[type="checkbox"]');
-	$("#selectAll").click(function(){
-		if(this.checked){
-			checkbox.each(function(){
-				this.checked = true;                        
-			});
-		} else{
-			checkbox.each(function(){
-				this.checked = false;                        
-			});
-		} 
-	});
-	checkbox.click(function(){
-		if(!this.checked){
-			$("#selectAll").prop("checked", false);
-		}
-	});
-});
+function add_note(){
+  let title = $('#title-add-note').val();
+  if (title.length > 0){
+    let note = JSON.stringify({
+      "title": title,
+    });
+  
+    $.ajax({
+      url:'http://localhost:8000/notes',
+      type:'POST',
+      'data': note,
+      dataType: "json",
+      contentType: 'application/json',
+      beforeSend: function(request) {
+        request.setRequestHeader("Authorization", localStorage['token']);
+      },
+      success: function(response){
+        let codeBlock = '<tr>' + 
+        '<td>' + title + '</td>' +
+        '<td>' + response['creation_date'] + '</td>' +
+  '         </tr>';
+        document.getElementById("list-notes").innerHTML += codeBlock; 
+        $("#error-insert-message").css("display", "none");
+        $('#title-add-note').val("");
+        $('#addNoteModal').modal('hide');
+      },
+      error: function(response){
+        let result_errors = response['responseJSON']['result'];
+        let errors = [];
+        for (let key in result_errors){
+            errors.push(result_errors[key]);
+        }
+        $("#error-insert-message").css("display", "inline");
+        $("#error-insert-message").css("margin-top", "20px");
+        $('#error-insert-message').text(errors); 
+        }
+    }      
+  );  
+  }
+  else{
+    $("#error-insert-message").css("display", "inline");
+    $("#error-insert-message").css("margin-top", "20px");
+    $('#error-insert-message').text("Insert title");     
+  }
+}
