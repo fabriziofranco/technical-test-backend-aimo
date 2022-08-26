@@ -1,9 +1,11 @@
-from truckpad.bottle.cors import enable_cors
+from truckpad.bottle.cors import enable_cors, CorsPlugin
 from peewee import DoesNotExist
 from serializers import users_schema, user_schema, note_schema, notes_schema, login_schema
 from bottle import run, Bottle, response, request
 from models import User, Note
 import jwt
+import json
+
 
 app = Bottle()
 
@@ -92,7 +94,7 @@ def add_note():
 
 @enable_cors
 @app.route('/notes', method=['GET'])
-def add_note():
+def read_nodes():
     auth_user = token_auth(request.headers.get('Authorization'))
     if auth_user is None:
         response.status= 401
@@ -103,5 +105,5 @@ def add_note():
         return {"result": "success", "status": response.status_code, "notes": notes}  
 
 
-
+app.install(CorsPlugin(origins=['*']))
 run(app, host='localhost', port=8000)
